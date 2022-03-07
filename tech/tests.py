@@ -4,6 +4,7 @@ from tech.forms import ProductForm
 from .models import TechType, Product, Review
 import datetime
 from  .forms import ProductForm
+from django.urls import reverse_lazy, reverse
 
 # Create your tests here.
 class TechTypeTest(TestCase):
@@ -14,7 +15,7 @@ class TechTypeTest(TestCase):
         self.assertEqual(str(self.type), 'Lenovo Laptop')
 
     def test_tablename(self):
-        self.assertEqual(str(TechType._meta.db_table), 'techtype')
+        self.assertEqual(str(TechType._meta.db_table), 'tech_techtype')
 
 class ProductTest(TestCase):
     def setUp(self):
@@ -49,14 +50,14 @@ class NewProductForm(TestCase):
         form=ProductForm (data)
         self.assertTrue(form.is_valid)
    
-    def test_Productform_Invalid(self):
-        data={
-             'productname':'surface', 
-             'producttype' : 'laptap', 
-             'user': 'gio', 
-             'dateentered': 'January 2, 2022',
-             'producturl' : 'http://www.microsoft.com',
-             'description' : 'half laptop half table',
-          }
-        form=ProductForm (data)
-        self.assertFalse(form.is_valid)
+
+
+class New_Product_Authentication_Test(TestCase):
+    def setUp(self):
+        self.test_user=User.objects.create_user(username='testuser1', password='P@ssw0rd1')
+        self.type=TechType.objects.create(typename='laptop')
+        self.product=Product.objects.create(productname='product1',producttype=self.type, user=self.test_user, dateentered=datetime.date(2021,1,10), price=1200.99, producturl='http://www.lenovo.com', description="lenovo laptop")
+
+    def test_redirect_if_not_logged_in(self):
+        response=self.client.get(reverse('newproduct'))
+        self.assertRedirects(response, '/accounts/login/?next=/tech/newproduct/')
